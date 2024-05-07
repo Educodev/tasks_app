@@ -2,7 +2,8 @@ import 'dart:io';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite/sqlite_api.dart';
+
+import '../model/task.dart';
 
 class SQLiteManager {
   
@@ -15,7 +16,7 @@ class SQLiteManager {
 
 // El get es el que vamos a llamar para acceder a la base de datos desde fuera de la clase, con el gestionamos la propiedad _database privada
 // Debe ser asyncrono ya que el proceso para obtener la base de daros no es sicrono y tiene que esperar.
-  get database async {
+   get database async {
     // Devuelve la base de datos en caso de que ya se haya instanciado de antes y esta contenga una base de deatos para no realizar de nuevo el proceso de obtener la base de datos
     if (_database != null) return _database;
 
@@ -36,13 +37,41 @@ class SQLiteManager {
     print(path);
     // Aqui creamos la base de datos si no existe y es lo que devolvemos en el metodo
     // le pasamos la Ruta, y la version(para controlar si hacemos cambios estructurales a lo largo del proyecto, cuando se vuelva a ejecutar este metodo y si previamente hemos aumentado la version entonces se vuelve a disparar la creacion de toda la estructura de la base de datos )
-    return await openDatabase(path, version: 1, onOpen: ( db ) {}, onCreate: (Database db, int version) async {
-      await db.execute('''
+    return await openDatabase(path, version: 2, onOpen: ( db ) {}, onCreate: (Database db, int version) async {
+      await db.execute(testTable);
+      await db.execute(userTable);
 
-''');
     });
     
 
   }
+
+Future createNewTask(Task task) async {
+   final Database db = await database;
+
+}
+
+  Future<void> registerUser(User user) async {
+    try {
+      final db = await database;
+      await db.insert(
+        'User',
+        user.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      print('Error al registrar usuario: $e');
+      throw e;
+    }
+  }
+
+
+Future createNewCategory(Category category) async {
+
+}
+
+final String userTable= 'CREATE TABLE User (id INTEGER PRIMARY KEY, name TEXT, email TEXT)';
+final String testTable = 'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT, value INTEGER, num REAL)';
+
   
 }
