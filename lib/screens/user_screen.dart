@@ -43,8 +43,15 @@ class UserScreen extends StatelessWidget {
                      decoration: InputDecoration(hintText: "Correo Electronico"),
                      keyboardType: TextInputType.emailAddress,
                    ),
-                   ElevatedButton(onPressed: () {
+                   ElevatedButton(onPressed: () async {
                     // TODO: comprobar en la base de daros si existe este usuario
+                    final isLogged = SQLiteManager.db.login(formValues['name']!, formValues['email']!);
+                    if (await isLogged) {
+                      print("Usuario logueado correctamente");
+                      Navigator.pushNamed(context, 'taskList');
+                    } else {
+                      print('El usuario no existe');
+                    }
                    }, 
                    child: const Text('Entrar')
                    ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tasks_app/db_provider/sqlite_manager.dart';
+import 'package:tasks_app/screens/task_list_screen.dart';
 import 'package:tasks_app/screens/user_screen.dart';
 
 void main() => runApp(const MyApp());
@@ -13,7 +14,8 @@ class MyApp extends StatelessWidget {
       title: 'Material App',
       initialRoute: 'login',
       routes: {
-        'login':(context) => UserScreen()
+        'login':(context) => UserScreen(),
+        'taskList':(context) => TaskListScreen()
       },
     );
   }

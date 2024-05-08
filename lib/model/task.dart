@@ -1,5 +1,6 @@
 class Task {
-  final int id;
+  final int id = 0;
+  final int userId;
   final String title;
   final String description;
   final DateTime creationDate;
@@ -8,7 +9,7 @@ class Task {
   final TaskStatus status;
 
   Task({
-    required this.id,
+    required this.userId,
     required this.title,
     required this.description,
     required this.creationDate,
@@ -16,6 +17,20 @@ class Task {
     required this.priority,
     required this.status,
   });
+
+    Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'userId': userId,
+      'title': title,
+      'description': description,
+      'creationDate': creationDate.millisecondsSinceEpoch,
+      'dueDate': dueDate.millisecondsSinceEpoch,
+      'priority': priority.index, 
+      'status': status.index,
+    };
+  }
+
 }
 
 enum TaskPriority { low, medium, high }

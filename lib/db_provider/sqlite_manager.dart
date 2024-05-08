@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'package:path/path.dart' show join;
 import 'package:path_provider/path_provider.dart';
@@ -37,41 +39,69 @@ class SQLiteManager {
     print(path);
     // Aqui creamos la base de datos si no existe y es lo que devolvemos en el metodo
     // le pasamos la Ruta, y la version(para controlar si hacemos cambios estructurales a lo largo del proyecto, cuando se vuelva a ejecutar este metodo y si previamente hemos aumentado la version entonces se vuelve a disparar la creacion de toda la estructura de la base de datos )
-    return await openDatabase(path, version: 2, onOpen: ( db ) {}, onCreate: (Database db, int version) async {
+    return await openDatabase(path, version: 3, onOpen: ( db ) {}, onCreate: (Database db, int version) async {
       await db.execute(testTable);
       await db.execute(userTable);
+      await db.execute(taskTable);
 
     });
     
 
   }
 
-Future createNewTask(Task task) async {
-   final Database db = await database;
+// Future<void> createNewTask(Task task) async {
+//    final Database db = await database;
+//     await db.rawInsert('''
+//       INSERT INTO Task(id, userID, title, description, creationDate, dueDate, priority, status)
+//       VALUES(${task.id}, ${task.userId}, '${task.title}', '${task.description}', ${task.creationDate.millisecondsSinceEpoch}, ${task.dueDate.millisecondsSinceEpoch}, ${task.priority.index}, ${task.status.index})
+//      ''');
 
+
+// }
+
+Future<bool> createNewTask(Task task) async {
+  final Database db = await database;
+  final int id = await db.rawInsert('''
+    INSERT INTO Task(userID, title, description, creationDate, dueDate, priority, status)
+    VALUES(${task.userId}, '${task.title}', '${task.description}', ${task.creationDate.millisecondsSinceEpoch}, ${task.dueDate.millisecondsSinceEpoch}, ${task.priority.index}, ${task.status.index})
+  ''');
+  return (id != -1);
 }
 
-  Future<void> registerUser(User user) async {
-    try {
-      final db = await database;
-      await db.insert(
-        'User',
-        user.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    } catch (e) {
-      print('Error al registrar usuario: $e');
-      throw e;
-    }
+Future<List<Map>> getTasks(int userID) async {
+  final Database db = await database;
+  List<Map> result = await db.rawQuery('''
+    SELECT * FROM Task WHERE userID = $userID
+  ''');
+  print(result);
+  return result;
   }
 
 
-Future createNewCategory(Category category) async {
-
+  Future<int> registerUser(User user) async {
+  final Database db = await database;
+  int userId = await db.rawInsert('''
+    INSERT INTO User(name, email)
+    VALUES('${user.name}', '${user.email}')
+  ''');
+  return userId;
 }
+
+Future<bool> login(String name, String email) async {
+  final Database db = await database;
+  List<Map<String, dynamic>> result = await db.rawQuery('''
+    SELECT * FROM User WHERE name = '$name' AND email = '$email'
+  ''');
+  print(result);
+  return result.isNotEmpty;
+  }
+
 
 final String userTable= 'CREATE TABLE User (id INTEGER PRIMARY KEY, name TEXT, email TEXT)';
 final String testTable = 'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT, value INTEGER, num REAL)';
+final String taskTable = 'CREATE TABLE Task (id INTEGER PRIMARY KEY, userID INTEGER, title TEXT, description TEXT, creationDate INTEGER, dueDate INTEGER, priority INTEGER, status INTEGER)';
 
   
 }
+
+
